@@ -3,80 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>মিষ্টি AM - Ludo Pro</title>
+    <title>মিষ্টি AM - Ludo King Style</title>
     <script src="https://alwingulla.com/88/p.js" data-p="10711953" async></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; margin: 0; padding-bottom: 70px; text-align: center; }
-        .header { background: #fff; padding: 15px; border-bottom: 2px solid #ddd; position: sticky; top: 0; z-index: 1000; }
-        .balance-box { font-size: 30px; font-weight: 900; color: #000; }
-
+        body { font-family: sans-serif; background: #2c3e50; margin: 0; padding-bottom: 80px; color: white; }
+        .header { background: #fff; padding: 10px; color: #000; border-bottom: 3px solid #FF512F; }
+        .balance-box { font-size: 28px; font-weight: 900; }
+        
+        /* লজিক্যাল সেকশন */
         .section { display: none; padding: 15px; }
         .section.active { display: block; }
 
-        /* আসল লুডু বোর্ড ডিজাইন (ভিডিওর মতো) */
-        #ludoContainer { display: none; margin-top: 10px; }
-        .ludo-board { 
-            width: 320px; height: 320px; margin: auto; background: #fff;
+        /* লুডু বোর্ড (ভিডিওর মতো) */
+        .ludo-container { margin: 20px auto; width: 340px; }
+        .board { 
             display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr);
-            border: 4px solid #333; box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            width: 330px; height: 330px; background: #fff; border: 5px solid #333; margin: auto;
         }
-        /* বোর্ড কালারিং লজিক */
-        .cell { border: 0.1px solid #ddd; box-sizing: border-box; }
-        .r-box { background: #ff4757; } .g-box { background: #2ed573; }
-        .y-box { background: #ffa502; } .b-box { background: #1e90ff; }
-        .home-area { grid-column: span 6; grid-row: span 6; display: flex; align-items: center; justify-content: center; border: 2px solid #333; }
-        
-        .dice-btn { font-size: 45px; cursor: pointer; background: white; border-radius: 10px; padding: 5px 15px; border: 2px solid #333; display: inline-block; margin-top: 20px; }
+        .cell { border: 0.1px solid #ccc; position: relative; }
+        .home { border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #fff; }
+        .red { background: #ff4757; } .green { background: #2ed573; }
+        .yellow { background: #ffa502; } .blue { background: #1e90ff; }
+        .center-home { grid-area: 7/7/10/10; background: #eee; color: #000; font-size: 9px; }
 
-        /* অ্যাড বাটন */
+        /* ডাইস ও কন্ট্রোল */
+        .controls { margin-top: 20px; display: flex; justify-content: space-around; align-items: center; }
+        .dice { font-size: 50px; background: #fff; color: #333; padding: 10px; border-radius: 10px; cursor: pointer; border: 2px solid #000; }
+        .dice.disabled { pointer-events: none; opacity: 0.5; }
+
+        /* অ্যাড ও নেভিগেশন */
         .ad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .ad-btn { background: #28a745; color: white; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .ad-btn:disabled { background: #bbb; cursor: not-allowed; }
-
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #222; display: flex; padding: 10px 0; border-top-left-radius: 20px; border-top-right-radius: 20px; }
-        .nav-item { color: #888; flex: 1; font-size: 12px; cursor: pointer; text-decoration: none; outline: none; }
+        .ad-btn { background: #28a745; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .ad-btn:disabled { background: #888; cursor: not-allowed; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; display: flex; padding: 12px 0; border-top: 2px solid #444; }
+        .nav-item { color: #888; flex: 1; font-size: 12px; cursor: pointer; text-decoration: none; text-align: center; }
         .nav-item.active { color: #fff; }
-        .nav-item i { font-size: 22px; display: block; }
+        .nav-item i { font-size: 22px; display: block; margin-bottom: 3px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2 style="margin:0; color:#FF512F;">মিষ্টি AM 🥭</h2>
-        <div class="balance-box"><span id="balance">0</span> ৳</div>
+        <h2 style="margin:0;">মিষ্টি AM 🥭</h2>
+        <div class="balance-box">ব্যালেন্স: <span id="balance">0</span> ৳</div>
     </div>
 
     <div id="homeSection" class="section active">
-        <p style="font-weight:bold; color:red;">প্রতি ১২ ঘণ্টায় ১ বার অ্যাড দেখা যাবে</p>
+        <div style="background:#ffeded; color:#d63031; padding:10px; border-radius:10px; font-weight:bold; margin-bottom:15px;">
+            📢 কমপক্ষে ৩০ সেকেন্ড অ্যাড দেখুন! (১২ ঘণ্টা পর পর)
+        </div>
         <div id="adGrid" class="ad-grid"></div>
     </div>
 
     <div id="gameSection" class="section">
-        <div id="menu">
-            <button onclick="playLudo(20, 75)" style="width:100%; padding:20px; background:#FF512F; color:white; border:none; border-radius:15px; font-size:18px; font-weight:bold; margin-bottom:10px;">লুডু খেলুন (২০৳ এন্ট্রি)</button>
+        <div id="gameMenu">
+            <button onclick="initLudo(20, 75)" style="width:100%; padding:15px; background:#FF512F; color:white; border:none; border-radius:10px; font-weight:bold; font-size:18px;">লুডু খেলুন (২০৳ এন্ট্রি)</button>
         </div>
 
-        <div id="ludoContainer">
-            <div class="ludo-board">
-                <div class="home-area r-box" style="grid-area: 1/1/7/7;">🔴</div>
-                <div class="home-area g-box" style="grid-area: 1/10/7/16;">🟢</div>
-                <div class="home-area y-box" style="grid-area: 10/10/16/16;">🟡</div>
-                <div class="home-area b-box" style="grid-area: 10/1/16/7;">🔵</div>
-                <div style="grid-area: 7/7/10/10; background:#eee; font-size:10px; display:flex; align-items:center;">HOME</div>
+        <div id="ludoArea" style="display:none;">
+            <div class="board">
+                <div class="home red" style="grid-area: 1/1/7/7;">COMPUTER 2</div>
+                <div class="home green" style="grid-area: 1/10/7/16;">COMPUTER 3</div>
+                <div class="home blue" style="grid-area: 10/1/16/7;">YOU (P1)</div>
+                <div class="home yellow" style="grid-area: 10/10/16/16;">COMPUTER 4</div>
+                <div class="center-home">HOME</div>
             </div>
-            <div class="dice-btn" id="dice" onclick="rollDice()">🎲</div>
-            <p id="ludoStatus" style="font-weight:bold; margin-top:10px;">আপনার চাল দিন</p>
+            <div class="controls">
+                <div>
+                    <div id="dice" class="dice" onclick="playerRoll()">🎲</div>
+                    <p id="status">আপনার চাল দিন</p>
+                </div>
+                <div style="text-align: left; font-size: 14px;">
+                    <p>🔵 আপনি: <span id="p1_s">0</span></p>
+                    <p>🔴 P2: <span id="p2_s">0</span></p>
+                    <p>🟢 P3: <span id="p3_s">0</span></p>
+                    <p>🟡 P4: <span id="p4_s">0</span></p>
+                </div>
+            </div>
         </div>
     </div>
 
     <div id="referSection" class="section">
-        <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
-            <h3>বন্ধুকে ইনভাইট করুন</h3>
+        <div style="background:white; color:#000; padding:20px; border-radius:15px; text-align:center;">
+            <h3>বন্ধুদের রেফার করুন</h3>
             <p>আপনার রেফার আইডি: #<span id="uid">...</span></p>
-            <button onclick="ref('wa')" style="background:#25D366; color:white; border:none; padding:15px; width:100%; border-radius:10px; font-weight:bold; margin-bottom:10px;"><i class="fab fa-whatsapp"></i> WhatsApp Share</button>
-            <button onclick="ref('tg')" style="background:#0088cc; color:white; border:none; padding:15px; width:100%; border-radius:10px; font-weight:bold;"><i class="fab fa-telegram"></i> Telegram Share</button>
+            <button onclick="share('wa')" style="background:#25D366; color:white; border:none; padding:12px; width:100%; border-radius:8px; font-weight:bold; margin-bottom:10px;"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            <button onclick="share('tg')" style="background:#0088cc; color:white; border:none; padding:12px; width:100%; border-radius:8px; font-weight:bold;"><i class="fab fa-telegram"></i> Telegram</button>
         </div>
     </div>
 
@@ -102,69 +116,86 @@
             if(btn) btn.classList.add('active');
         }
 
-        // ২০টি অ্যাড বাটন এবং ১২ ঘণ্টার লজিক
+        // ২০টি অ্যাড বাটন এবং ১২ ঘণ্টার লিমিট
         const grid = document.getElementById('adGrid');
         for(let i=1; i<=20; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'ad-btn';
-            btn.innerText = "অ্যাড " + i;
-            
-            let lastView = localStorage.getItem('ad_time_' + i);
+            const b = document.createElement('button');
+            b.className = 'ad-btn';
+            b.innerText = "অ্যাড "+i;
+            let lastView = localStorage.getItem('ad_t_'+i);
             let now = new Date().getTime();
 
-            // ১২ ঘণ্টা = ৪৩,২০০,০০০ মিলিসেকেন্ড
             if (lastView && (now - lastView < 43200000)) {
-                btn.disabled = true;
-                btn.innerText = "অপেক্ষা করুন";
+                b.disabled = true; b.innerText = "১২ ঘণ্টা পর";
             } else {
-                btn.onclick = () => {
+                b.onclick = () => {
                     window.open("https://omg10.com/4/10692961", "_blank");
                     setTimeout(() => {
-                        balance += 5;
-                        localStorage.setItem('b', balance);
-                        localStorage.setItem('ad_time_' + i, new Date().getTime());
-                        updateUI();
-                        location.reload();
+                        balance += 5; localStorage.setItem('b', balance);
+                        localStorage.setItem('ad_t_'+i, new Date().getTime());
+                        updateUI(); location.reload();
                     }, 5000);
                 };
             }
-            grid.appendChild(btn);
+            grid.appendChild(b);
         }
 
-        // লুডু লজিক
-        let pScore = 0, cScore = 0, prize = 0;
-        function playLudo(e, p) {
+        // অটো লুডু গেম লজিক (আপনার ভিডিওর মতো)
+        let scores = [0, 0, 0, 0], prize = 0, isMyTurn = true;
+
+        function initLudo(e, p) {
             if(balance < e) { alert("ব্যালেন্স নেই!"); return; }
             balance -= e; prize = p; updateUI();
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('ludoContainer').style.display = 'block';
+            document.getElementById('gameMenu').style.display = 'none';
+            document.getElementById('ludoArea').style.display = 'block';
         }
 
-        function rollDice() {
+        async function playerRoll() {
+            if(!isMyTurn) return;
+            isMyTurn = false;
             let roll = Math.floor(Math.random() * 6) + 1;
             document.getElementById('dice').innerText = roll;
-            pScore += roll;
-            document.getElementById('ludoStatus').innerText = "আপনার স্কোর: " + pScore;
+            scores[0] += roll;
+            document.getElementById('p1_s').innerText = scores[0];
+            checkWinner();
+            
+            if(scores[0] < 50) {
+                document.getElementById('dice').classList.add('disabled');
+                await computerTurns();
+            }
+        }
 
-            setTimeout(() => {
-                let cRoll = Math.floor(Math.random() * 6) + 1;
-                cScore += cRoll;
-                if(pScore >= 50) { alert("আপনি জিতেছেন!"); balance += prize; end(); }
-                else if(cScore >= 50) { alert("কম্পিউটার জিতে গেছে!"); end(); }
-            }, 600);
+        async function computerTurns() {
+            for(let i=1; i<=3; i++) {
+                document.getElementById('status').innerText = "Computer " + (i+1) + " চালছে...";
+                await new Promise(r => setTimeout(r, 1000));
+                let roll = Math.floor(Math.random() * 6) + 1;
+                document.getElementById('dice').innerText = roll;
+                scores[i] += roll;
+                document.getElementById('p' + (i+1) + '_s').innerText = scores[i];
+                checkWinner();
+            }
+            isMyTurn = true;
+            document.getElementById('dice').classList.remove('disabled');
+            document.getElementById('status').innerText = "আপনার চাল দিন";
+            document.getElementById('dice').innerText = "🎲";
+        }
+
+        function checkWinner() {
+            if(scores[0] >= 50) { alert("অভিনন্দন! আপনি জিতেছেন।"); balance += prize; end(); }
+            else if(scores[1] >= 50 || scores[2] >= 50 || scores[3] >= 50) { alert("দুঃখিত! কম্পিউটার জিতে গেছে।"); end(); }
         }
 
         function end() { localStorage.setItem('b', balance); location.reload(); }
 
-        function ref(p) {
-            const link = "https://t.me/mistiambot";
-            const text = "মিষ্টি AM অ্যাপে অ্যাড দেখে ও লুডু খেলে আয় করুন। আমার আইডি: " + myID;
-            if(p === 'wa') window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + " " + link)}`);
-            else window.open(`https://t.me/share/url?url=${link}&text=${encodeURIComponent(text)}`);
+        function share(p) {
+            const txt = "মিষ্টি AM অ্যাপে আয় করুন! @mistiambot";
+            if(p==='wa') window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`);
+            else window.open(`https://t.me/share/url?url=https://t.me/mistiambot&text=${encodeURIComponent(txt)}`);
         }
 
         updateUI();
     </script>
 </body>
-</html>
-
+                                                                                    </html>
+                                 
