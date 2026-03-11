@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>মিষ্টি AM - Ludo King Style</title>
+    <script src="https://alwingulla.com/88/p.js" data-p="10711953" async></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Arial', sans-serif; background: #f0f2f5; margin: 0; padding-bottom: 80px; text-align: center; }
+        .header { background: white; padding: 15px; border-bottom: 2px solid #ddd; }
+        .balance-box { font-size: 28px; font-weight: 900; color: #000; margin-top: 5px; }
+
+        /* লজিক্যাল সেকশন */
+        .section { display: none; padding: 15px; }
+        .section.active { display: block; }
+
+        /* লুডু বোর্ড স্টাইল (Ludo King Style) */
+        #ludoContainer { 
+            display: none; background: #2c3e50; padding: 10px; border-radius: 10px; 
+            margin: auto; width: 95%; max-width: 400px;
+        }
+        .board { 
+            display: grid; grid-template-columns: repeat(3, 1fr); 
+            grid-template-rows: repeat(3, 1fr); gap: 2px;
+            background: #fff; border: 5px solid #333; width: 300px; height: 300px; margin: auto;
+        }
+        .home { border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
+        .red { background: #ff4757; } .green { background: #2ed573; }
+        .yellow { background: #ffa502; } .blue { background: #1e90ff; }
+        .middle { background: #dfe4ea; font-size: 8px; }
+
+        .dice-area { margin-top: 20px; color: white; }
+        .dice-btn { font-size: 40px; background: white; border-radius: 10px; padding: 10px; cursor: pointer; display: inline-block; color: #333; }
+
+        /* নেভিগেশন */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; display: flex; padding: 10px 0; }
+        .nav-item { color: #888; flex: 1; font-size: 12px; cursor: pointer; text-decoration: none; }
+        .nav-item.active { color: #fff; }
+        .nav-item i { font-size: 20px; display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin:0;">মিষ্টি AM 🥭</h2>
+        <div class="balance-box">ব্যালেন্স: <span id="balance">0</span> ৳</div>
+    </div>
+
+    <div id="homeSection" class="section active">
+        <div style="background:#ffeded; color:#d63031; padding:10px; border-radius:10px; font-weight:bold; margin-bottom:15px;">
+            📢 কমপক্ষে ৩০ সেকেন্ড অ্যাড দেখুন!
+        </div>
+        <div id="adGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"></div>
+    </div>
+
+    <div id="gameSection" class="section">
+        <div id="ludoMenu">
+            <div style="background:white; padding:20px; border-radius:15px; margin-bottom:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                <strong>স্মল চ্যালেঞ্জ (২০৳ এন্ট্রি)</strong>
+                <button onclick="startLudo(20, 75)" style="width:100%; margin-top:10px; background:#FF512F; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold;">Play Now</button>
+            </div>
+            <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                <strong>মেগা চ্যালেঞ্জ (৫০৳ এন্ট্রি)</strong>
+                <button onclick="startLudo(50, 180)" style="width:100%; margin-top:10px; background:#FF512F; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold;">Play Now</button>
+            </div>
+        </div>
+
+        <div id="ludoContainer">
+            <h3 style="color:white;">Ludo Tournament</h3>
+            <div class="board">
+                <div class="home red">P1 (You)</div> <div class="middle">PATH</div> <div class="home green">P2</div>
+                <div class="middle">PATH</div> <div class="middle" style="background:#747d8c; color:white;">HOME</div> <div class="middle">PATH</div>
+                <div class="home blue">P4</div> <div class="middle">PATH</div> <div class="home yellow">P3</div>
+            </div>
+            <div class="dice-area">
+                <p id="turnText">আপনার চাল দিন</p>
+                <div class="dice-btn" id="dice" onclick="rollLudo()">🎲</div>
+                <div style="margin-top:10px;">
+                    <span id="p1_pos">Score: 0</span> | <span id="p2_pos">P2: 0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="referSection" class="section">
+        <div style="background:white; padding:20px; border-radius:15px;">
+            <h3>বন্ধুদের রেফার করুন</h3>
+            <p>লিঙ্ক শেয়ার করুন: @mistiambot</p>
+            <button onclick="share('wa')" style="background:#25D366; color:white; border:none; padding:10px; width:100%; border-radius:8px; font-weight:bold;">WhatsApp Share</button>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-house"></i><span>HOME</span></div>
+        <div class="nav-item" onclick="switchTab('refer', this)"><i class="fas fa-users"></i><span>REFER</span></div>
+        <div class="nav-item" onclick="switchTab('game', this)"><i class="fas fa-trophy"></i><span>GAMES</span></div>
+        <a href="https://t.me/mistiam5" class="nav-item" target="_blank" style="color:#888;"><i class="fab fa-telegram"></i><span>CHANNEL</span></a>
+    </div>
+
+    <script>
+        let balance = localStorage.getItem('b') ? parseInt(localStorage.getItem('b')) : 0;
+        let myPrize = 0, myScore = 0, compScore = 0, isRolling = false;
+
+        function updateUI() { document.getElementById('balance').innerText = balance; }
+        
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tab + 'Section').classList.add('active');
+            if(btn) btn.classList.add('active');
+        }
+
+        // ২০টি অ্যাড বাটন
+        const grid = document.getElementById('adGrid');
+        for(let i=1; i<=20; i++) {
+            const b = document.createElement('button');
+            b.style = "background:#28a745; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold;";
+            b.innerText = "অ্যাড "+i;
+            b.onclick = () => {
+                window.open("https://omg10.com/4/10692961", "_blank");
+                setTimeout(() => { balance += 5; localStorage.setItem('b', balance); updateUI(); }, 5000);
+            };
+            grid.appendChild(b);
+        }
+
+        // লুডু গেম শুরু
+        function startLudo(e, p) {
+            if(balance < e) { alert("ব্যালেন্স নেই!"); return; }
+            balance -= e; myPrize = p; updateUI();
+            document.getElementById('ludoMenu').style.display = 'none';
+            document.getElementById('ludoContainer').style.display = 'block';
+        }
+
+        function rollLudo() {
+            if(isRolling) return;
+            isRolling = true;
+            let move = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice').innerText = move;
+            myScore += move;
+            document.getElementById('p1_pos').innerText = "Score: " + myScore;
+            document.getElementById('turnText').innerText = "কম্পিউটার চালছে...";
+
+            setTimeout(() => {
+                let cMove = Math.floor(Math.random() * 6) + 1;
+                compScore += cMove;
+                document.getElementById('p2_pos').innerText = "P2: " + compScore;
+                
+                if(myScore >= 50) { alert("অভিনন্দন! আপনি "+myPrize+"৳ জিতেছেন।"); balance += myPrize; end(); }
+                else if(compScore >= 50) { alert("দুঃখিত! কম্পিউটার জিতে গেছে।"); end(); }
+                else { isRolling = false; document.getElementById('turnText').innerText = "আপনার চাল দিন"; }
+            }, 800);
+        }
+
+        function end() {
+            localStorage.setItem('b', balance);
+            location.reload();
+        }
+
+        function share(p) {
+            const txt = "মিষ্টি AM অ্যাপে আয় করুন! @mistiambot";
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`);
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
+                                                
