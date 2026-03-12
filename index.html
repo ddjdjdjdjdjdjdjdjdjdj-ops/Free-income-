@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X WORLD</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        /* পুরো ওয়েবসাইট ব্ল্যাক থিম */
         body {
             margin: 0;
-            padding: 0;
             background-color: #000000;
             color: #ffffff;
             font-family: Arial, sans-serif;
         }
 
-        /* টপ হেডার ডিজাইন */
+        /* টপ হেডার */
         header {
             display: flex;
             justify-content: space-between;
@@ -28,77 +28,66 @@
             z-index: 1000;
         }
 
-        .logo {
-            font-size: 22px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
+        .logo { font-size: 22px; font-weight: bold; letter-spacing: 1px; }
 
-        .header-icons {
-            display: flex;
-            gap: 20px;
-            font-size: 20px;
-            align-items: center;
-        }
-
-        .header-icons i {
-            cursor: pointer;
-        }
+        .header-icons { display: flex; gap: 20px; font-size: 20px; align-items: center; }
 
         .profile-img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: #444;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            width: 32px; height: 32px; border-radius: 50%;
+            background-color: #444; display: flex;
+            align-items: center; justify-content: center; overflow: hidden;
         }
 
-        /* ভিডিও গ্রিড সিস্টেম - এক স্ক্রিনে ৮টি ভিডিও (২ কলামে ৪টি রো) */
+        /* ভিডিও গ্রিড (আপনার ডায়াগ্রাম অনুযায়ী) */
         .video-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* মোবাইলে ২ কলাম */
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             padding: 10px;
+            padding-bottom: 20px;
         }
 
         .video-card {
             background-color: #111;
             border-radius: 8px;
             overflow: hidden;
-            aspect-ratio: 16/9; /* ভিডিওর সাইজ ঠিক রাখার জন্য */
+            aspect-ratio: 16/9;
             position: relative;
+            cursor: pointer;
         }
 
-        .video-card img {
+        .video-card video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.8;
         }
 
         .video-title {
             position: absolute;
-            bottom: 5px;
-            left: 5px;
-            font-size: 12px;
-            background: rgba(0,0,0,0.6);
-            padding: 2px 5px;
-        }
-
-        /* বটম মেনু (ঐচ্ছিক কিন্তু সুন্দর দেখাবে) */
-        .bottom-nav {
-            position: fixed;
             bottom: 0;
             width: 100%;
-            background: #000;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
-            border-top: 1px solid #222;
+            background: rgba(0,0,0,0.7);
+            font-size: 11px;
+            padding: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
+        /* ফুল স্ক্রিন ভিডিও প্লেয়ার (ইউটিউব স্টাইল) */
+        #videoPlayer {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 2000;
+        }
+
+        .close-btn {
+            position: absolute; top: 20px; left: 20px;
+            font-size: 25px; color: #fff; cursor: pointer; z-index: 2100;
+        }
+
+        #mainVideo { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
@@ -107,29 +96,61 @@
         <div class="logo">X WORLD</div>
         <div class="header-icons">
             <i class="fas fa-search"></i>
-            <div class="profile-img">
-                <i class="fas fa-user"></i>
-            </div>
+            <div class="profile-img"><i class="fas fa-user"></i></div>
         </div>
     </header>
 
-    <div class="video-grid">
-        <div class="video-card"><img src="https://via.placeholder.com/300x169/222/fff?text=Video+1"></div>
-        <div class="video-card"><img src="https://via.placeholder.com/300x169/222/fff?text=Video+2"></div>
-        <div class="video-card"><img src="https://via.placeholder.com/300x169/222/fff?text=Video+3"></div>
-        <div class="video-card"><img src="https://via.placeholder.com/300x169/222/fff?text=Video+4"></div>
-        <div class="video-card"><img src="https://via.placeholder.com/300x169/222/fff?text=Video+5"></div>
-        <div class="video-card"><img src="https://via.placeholder.com/300x169/222/fff?text=Video+6"></div>
-        <div class="video-card"><img src="https://via.placeholder.com/300x169/222/fff?text=Video+7"></div>
-        <div class="video-card"><img src="https://via.placeholder.com/300x169/222/fff?text=Video+8"></div>
+    <div class="video-grid" id="videoFeed">
+        <p style="text-align:center; grid-column: span 2;">ভিডিও লোড হচ্ছে...</p>
     </div>
 
-    <div class="bottom-nav">
-        <i class="fas fa-home"></i>
-        <i class="fas fa-plus-circle" style="font-size: 24px;"></i>
-        <i class="fas fa-play-circle"></i>
+    <div id="videoPlayer">
+        <span class="close-btn" onclick="closeVideo()"><i class="fas fa-arrow-left"></i></span>
+        <video id="mainVideo" controls autoplay></video>
     </div>
 
+    <script>
+        // আপনার Firebase কনফিগ
+        const firebaseConfig = {
+            apiKey: "AIzaSyBe87sb10Fsi2yHoj-X1OOVi6xMGhgVhjw",
+            authDomain: "studio-4738098761-3b90d.firebaseapp.com",
+            projectId: "studio-4738098761-3b90d",
+            storageBucket: "studio-4738098761-3b90d.firebasestorage.app",
+            messagingSenderId: "951804332123",
+            appId: "1:951804332123:web:1c40865e7c071a64b0177e"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ভিডিও থাম্বনেইলগুলো ডাটাবেস থেকে আনা
+        function loadFeed() {
+            db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
+                const feed = document.getElementById('videoFeed');
+                feed.innerHTML = "";
+                snap.forEach(doc => {
+                    const v = doc.data();
+                    feed.innerHTML += `
+                        <div class="video-card" onclick="playVideo('${v.url}')">
+                            <video src="${v.url}#t=0.5"></video>
+                            <div class="video-title">${v.title}</div>
+                        </div>`;
+                });
+            });
+        }
+
+        function playVideo(url) {
+            document.getElementById('mainVideo').src = url;
+            document.getElementById('videoPlayer').style.display = 'block';
+        }
+
+        function closeVideo() {
+            document.getElementById('videoPlayer').style.display = 'none';
+            document.getElementById('mainVideo').pause();
+        }
+
+        loadFeed();
+    </script>
 </body>
 </html>
 
