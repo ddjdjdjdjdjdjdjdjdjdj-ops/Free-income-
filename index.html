@@ -3,150 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X World</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>X World - TikTok Style</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f0f0f; color: white; padding-bottom: 70px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #0f0f0f; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #272727; }
-        .logo { font-size: 24px; font-weight: bold; color: #fff; letter-spacing: 1px; }
-        .logo span { color: #ff0000; }
-        .header-icons { display: flex; gap: 20px; align-items: center; font-size: 20px; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #0f0f0f; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #272727; z-index: 1000; }
-        .nav-item { color: #fff; font-size: 22px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .nav-item span { font-size: 10px; }
-        .nav-item.active { color: #ff0000; }
-        .section { display: none; padding: 15px; }
-        .section.active { display: block; }
-        .video-card { background: #000; margin-bottom: 20px; width: 100%; border-bottom: 4px solid #111; }
-        video { width: 100%; max-height: 250px; background: #000; }
-        .video-info { padding: 12px; display: flex; gap: 10px; }
-        .uploader-pic { width: 40px; height: 40px; border-radius: 50%; }
-        .vid-title { font-size: 16px; margin: 0 0 5px 0; }
-        .btn-style { background: #ff0000; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; }
+        body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
+        #feed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .video-container { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Overlay Info */
+        .v-info { position: absolute; bottom: 80px; left: 15px; z-index: 10; }
+        .v-info h3 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+        .sub-btn { background: #ff0000; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; border: none; }
+        
+        /* Sidebar Buttons */
+        .side-bar { position: absolute; right: 10px; bottom: 120px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .side-icon img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #fff; }
+        .action-item { text-align: center; cursor: pointer; }
+        .action-item i { font-size: 28px; display: block; }
+        .action-item span { font-size: 12px; margin-top: 4px; display: block; }
+
+        /* Bottom Nav */
+        .nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #333; z-index: 100; }
+        .plus-btn { background: linear-gradient(to right, #2af5ff, #ff2d55); padding: 5px 18px; border-radius: 10px; color: #000; font-weight: bold; font-size: 22px; }
+
+        #profilePage { display: none; position: fixed; inset: 0; background: #000; z-index: 200; padding: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="mainApp" style="display:none;">
-        <div class="header">
-            <div class="logo">X <span>World</span></div>
-            <div class="header-icons">
-                <i class="fas fa-search" onclick="toggleSearch()"></i>
-                <img id="headAvatar" src="" style="border-radius:50%; width:30px; height:30px;">
-            </div>
-        </div>
+<div id="feed"></div>
 
-        <div id="homeSection" class="section active">
-            <div id="feedArea">লোড হচ্ছে...</div>
-        </div>
+<div class="nav">
+    <div onclick="location.reload()">🏠</div>
+    <div class="plus-btn" onclick="document.getElementById('fileInput').click()">+</div>
+    <div onclick="openProfile()">👤</div>
+</div>
 
-        <div id="uploadSection" class="section">
-            <div style="background:#222; padding:20px; border-radius:10px;">
-                <input type="text" id="vidTitle" placeholder="ভিডিওর টাইটেল..." style="width:100%; padding:10px; margin-bottom:10px; background:#333; color:#fff; border:none; border-radius:5px;">
-                <input type="file" id="vidFile" accept="video/*" style="margin-bottom:10px;">
-                <button class="btn-style" onclick="uploadVideo()" id="uploadBtn">পাবলিশ করুন</button>
-            </div>
-        </div>
+<div id="profilePage">
+    <button onclick="closeProfile()" style="float:left; color:#fff; background:none; border:none; font-size:25px;">✕</button>
+    <br><br>
+    <img id="pImg" src="" style="width:100px; border-radius:50%; border:2px solid #fff;">
+    <h2 id="pName"></h2>
+    <button onclick="editProfile()" style="background:#333; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Edit Profile</button>
+    <br><br>
+    <button onclick="auth.signOut().then(()=>location.reload())" style="color:red; background:none; border:none;">Logout</button>
+</div>
 
-        <div id="profileSection" class="section">
-            <div style="text-align:center; background:#222; padding:20px; border-radius:10px;">
-                <img id="userPic" src="" style="width:80px; border-radius:50%;">
-                <h3 id="userName"></h3>
-                <button onclick="logOut()" style="background:#444; color:white; border:none; padding:10px 20px; border-radius:20px;">লগআউট</button>
-            </div>
-        </div>
+<input type="file" id="fileInput" accept="video/*" style="display:none" onchange="uploadVideo(event)">
 
-        <div class="bottom-nav">
-            <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i><span>Home</span></div>
-            <div class="nav-item" onclick="switchTab('upload', this)"><i class="fas fa-plus-circle" style="font-size:35px; color:red"></i><span>Upload</span></div>
-            <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i><span>Profile</span></div>
-        </div>
-    </div>
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBe87sb10Fsi2yHoj-X1OOVi6xMGhgVhjw",
+      authDomain: "studio-4738098761-3b90d.firebaseapp.com",
+      projectId: "studio-4738098761-3b90d",
+      storageBucket: "studio-4738098761-3b90d.firebasestorage.app",
+      messagingSenderId: "951804332123",
+      appId: "1:951804332123:web:1c40865e7c071a64b0177e"
+    };
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
 
-        // আপনার ফিক্সড ফায়ারবেস কনফিগ
-        const firebaseConfig = {
-            apiKey: "AIzaSyBWhYvIKGHfDO4NrH0G5N692FljzD_wmZc",
-            authDomain: "misti-am.firebaseapp.com",
-            projectId: "misti-am",
-            storageBucket: "misti-am.firebasestorage.app",
-            messagingSenderId: "335857181187",
-            appId: "1:335857181187:web:ce34124f9daea3a4262436"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth();
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-
-        // অটো লগইন পপআপ
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('mainApp').style.display = 'block';
-                document.getElementById('userPic').src = user.photoURL;
-                document.getElementById('headAvatar').src = user.photoURL;
-                document.getElementById('userName').innerText = user.displayName;
-                loadVideos();
-            } else {
-                const provider = new GoogleAuthProvider();
-                signInWithPopup(auth, provider).catch(e => console.log("Login Error"));
-            }
-        });
-
-        window.switchTab = (tab, el) => {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(tab + 'Section').classList.add('active');
-            el.classList.add('active');
-        };
-
-        window.uploadVideo = async () => {
-            const title = document.getElementById('vidTitle').value;
-            const file = document.getElementById('vidFile').files[0];
-            if(!title || !file) return alert("সব তথ্য দিন!");
-            
-            const btn = document.getElementById('uploadBtn');
-            btn.disabled = true; btn.innerText = "আপলোড হচ্ছে...";
-
-            const sRef = ref(storage, 'v/' + Date.now());
-            const task = uploadBytesResumable(sRef, file);
-            
-            task.on('state_changed', null, null, async () => {
-                const url = await getDownloadURL(task.snapshot.ref);
-                await addDoc(collection(db, "videos"), {
-                    title, vidUrl: url, uploaderName: auth.currentUser.displayName,
-                    uploaderPic: auth.currentUser.photoURL, timestamp: Date.now()
-                });
-                alert("সফল!"); location.reload();
-            });
-        };
-
-        function loadVideos() {
-            const q = query(collection(db, "videos"), orderBy("timestamp", "desc"));
-            onSnapshot(q, (snap) => {
-                const feed = document.getElementById('feedArea');
-                feed.innerHTML = "";
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    feed.innerHTML += `
-                        <div class="video-card">
-                            <video src="${data.vidUrl}" controls></video>
-                            <div class="video-info">
-                                <img src="${data.uploaderPic}" class="uploader-pic">
-                                <div><h3 class="vid-title">${data.title}</h3><p style="color:#aaa;font-size:12px">${data.uploaderName}</p></div>
-                            </div>
-                        </div>`;
-                });
-            });
+    auth.onAuthStateChanged(user => {
+        if (!user) {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider);
+        } else {
+            document.getElementById('pImg').src = user.photoURL;
+            document.getElementById('pName').innerText = user.displayName;
+            loadVideos();
         }
+    });
 
-        window.logOut = () => signOut(auth).then(() => location.reload());
-    </script>
-</body>
-    </html>
+    async function uploadVideo(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const title = prompt("ভিডিওর টাইটেল লিখুন:");
+        alert("আপলোড হচ্ছে...");
+        const ref = storage.ref('videos/' + Date.now());
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+        await db.collection("videos").add({
+            url, title, name: auth.currentUser.displayName, pic: auth.currentUser.photoURL,
+            likes: 0, subs: 0, time: Date.now()
+        });
+        alert("সফলভাবে আপলোড হয়েছে!");
+        location.reload();
+    }
+
+    function loadVideos() {
+        db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = "";
+            snap.forEach(doc => {
+                const v = doc.data();
+                const id = doc.id;
+                feed.innerHTML += `
+                <div class="video-container">
+                    <video src="${v.url}" loop onclick="this.paused ? this.play() : this.pause()"></video>
+                    <div class="v-info">
+                        <h3>@${v.name} <button class="sub-btn" onclick="doSub('${id}')">Subscribe</button></h3>
+                        <p>${v.title}</p>
+                    </div>
+                    <div class="side-bar">
+                        <div class="side-icon"><img src="${v.pic}"></div>
+                        <div class="action-item" onclick="doLike('${id}')">❤️ <span>${v.likes || 0}</span></div>
+                        <div class="action-item" onclick="alert('Comment box coming soon!')">💬 <span>0</span></div>
+                        <div class="action-item">🚀 <span>Share</span></div>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    // Like Function
+    window.doLike = (id) => {
+        db.collection("videos").doc(id).update({
+            likes: firebase.firestore.FieldValue.increment(1)
+        });
+    };
+
+    // Subscribe Function
+    window.doSub = (id) => {
+        alert("Subscribed to creator!");
+        db.collection("videos").doc(id).update({
+            subs: firebase.firestore.FieldValue.increment(1)
+        });
+    };
+
+    window.openProfile = () => document.getElementById('profilePage').style.display = 'block';
+    window.closeProfile = () => document.getElementById('profilePage').style.display = 'none';
     
+    window.editProfile = () => {
+        const n = prompt("নতুন নাম দিন:", auth.currentUser.displayName);
+        if(n) auth.currentUser.updateProfile({displayName: n}).then(()=>location.reload());
+    };
+</script>
+</body>
+</html>
+
