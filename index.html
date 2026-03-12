@@ -3,199 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>মিষ্টি AM - Ludo King Style</title>
-    <script src="https://alwingulla.com/88/p.js" data-p="10711953" async></script>
+    <title>X World</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: sans-serif; background: #2c3e50; margin: 0; padding-bottom: 80px; color: white; }
-        .header { background: #fff; padding: 10px; color: #000; border-bottom: 3px solid #FF512F; }
-        .balance-box { font-size: 28px; font-weight: 900; }
-        
-        /* লজিক্যাল সেকশন */
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f0f0f; color: white; padding-bottom: 70px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #0f0f0f; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #272727; }
+        .logo { font-size: 24px; font-weight: bold; color: #fff; letter-spacing: 1px; }
+        .logo span { color: #ff0000; }
+        .header-icons { display: flex; gap: 20px; align-items: center; font-size: 20px; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #0f0f0f; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #272727; z-index: 1000; }
+        .nav-item { color: #fff; font-size: 22px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .nav-item span { font-size: 10px; }
+        .nav-item.active { color: #ff0000; }
         .section { display: none; padding: 15px; }
         .section.active { display: block; }
-
-        /* লুডু বোর্ড (ভিডিওর মতো) */
-        .ludo-container { margin: 20px auto; width: 340px; }
-        .board { 
-            display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr);
-            width: 330px; height: 330px; background: #fff; border: 5px solid #333; margin: auto;
-        }
-        .cell { border: 0.1px solid #ccc; position: relative; }
-        .home { border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #fff; }
-        .red { background: #ff4757; } .green { background: #2ed573; }
-        .yellow { background: #ffa502; } .blue { background: #1e90ff; }
-        .center-home { grid-area: 7/7/10/10; background: #eee; color: #000; font-size: 9px; }
-
-        /* ডাইস ও কন্ট্রোল */
-        .controls { margin-top: 20px; display: flex; justify-content: space-around; align-items: center; }
-        .dice { font-size: 50px; background: #fff; color: #333; padding: 10px; border-radius: 10px; cursor: pointer; border: 2px solid #000; }
-        .dice.disabled { pointer-events: none; opacity: 0.5; }
-
-        /* অ্যাড ও নেভিগেশন */
-        .ad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .ad-btn { background: #28a745; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .ad-btn:disabled { background: #888; cursor: not-allowed; }
-        
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; display: flex; padding: 12px 0; border-top: 2px solid #444; }
-        .nav-item { color: #888; flex: 1; font-size: 12px; cursor: pointer; text-decoration: none; text-align: center; }
-        .nav-item.active { color: #fff; }
-        .nav-item i { font-size: 22px; display: block; margin-bottom: 3px; }
+        .video-card { background: #000; margin-bottom: 20px; width: 100%; border-bottom: 4px solid #111; }
+        video { width: 100%; max-height: 250px; background: #000; }
+        .video-info { padding: 12px; display: flex; gap: 10px; }
+        .uploader-pic { width: 40px; height: 40px; border-radius: 50%; }
+        .vid-title { font-size: 16px; margin: 0 0 5px 0; }
+        .btn-style { background: #ff0000; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2 style="margin:0;">মিষ্টি AM 🥭</h2>
-        <div class="balance-box">ব্যালেন্স: <span id="balance">0</span> ৳</div>
-    </div>
-
-    <div id="homeSection" class="section active">
-        <div style="background:#ffeded; color:#d63031; padding:10px; border-radius:10px; font-weight:bold; margin-bottom:15px;">
-            📢 কমপক্ষে ৩০ সেকেন্ড অ্যাড দেখুন! (১২ ঘণ্টা পর পর)
-        </div>
-        <div id="adGrid" class="ad-grid"></div>
-    </div>
-
-    <div id="gameSection" class="section">
-        <div id="gameMenu">
-            <button onclick="initLudo(20, 75)" style="width:100%; padding:15px; background:#FF512F; color:white; border:none; border-radius:10px; font-weight:bold; font-size:18px;">লুডু খেলুন (২০৳ এন্ট্রি)</button>
-        </div>
-
-        <div id="ludoArea" style="display:none;">
-            <div class="board">
-                <div class="home red" style="grid-area: 1/1/7/7;">COMPUTER 2</div>
-                <div class="home green" style="grid-area: 1/10/7/16;">COMPUTER 3</div>
-                <div class="home blue" style="grid-area: 10/1/16/7;">YOU (P1)</div>
-                <div class="home yellow" style="grid-area: 10/10/16/16;">COMPUTER 4</div>
-                <div class="center-home">HOME</div>
-            </div>
-            <div class="controls">
-                <div>
-                    <div id="dice" class="dice" onclick="playerRoll()">🎲</div>
-                    <p id="status">আপনার চাল দিন</p>
-                </div>
-                <div style="text-align: left; font-size: 14px;">
-                    <p>🔵 আপনি: <span id="p1_s">0</span></p>
-                    <p>🔴 P2: <span id="p2_s">0</span></p>
-                    <p>🟢 P3: <span id="p3_s">0</span></p>
-                    <p>🟡 P4: <span id="p4_s">0</span></p>
-                </div>
+    <div id="mainApp" style="display:none;">
+        <div class="header">
+            <div class="logo">X <span>World</span></div>
+            <div class="header-icons">
+                <i class="fas fa-search" onclick="toggleSearch()"></i>
+                <img id="headAvatar" src="" style="border-radius:50%; width:30px; height:30px;">
             </div>
         </div>
-    </div>
 
-    <div id="referSection" class="section">
-        <div style="background:white; color:#000; padding:20px; border-radius:15px; text-align:center;">
-            <h3>বন্ধুদের রেফার করুন</h3>
-            <p>আপনার রেফার আইডি: #<span id="uid">...</span></p>
-            <button onclick="share('wa')" style="background:#25D366; color:white; border:none; padding:12px; width:100%; border-radius:8px; font-weight:bold; margin-bottom:10px;"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-            <button onclick="share('tg')" style="background:#0088cc; color:white; border:none; padding:12px; width:100%; border-radius:8px; font-weight:bold;"><i class="fab fa-telegram"></i> Telegram</button>
+        <div id="homeSection" class="section active">
+            <div id="feedArea">লোড হচ্ছে...</div>
+        </div>
+
+        <div id="uploadSection" class="section">
+            <div style="background:#222; padding:20px; border-radius:10px;">
+                <input type="text" id="vidTitle" placeholder="ভিডিওর টাইটেল..." style="width:100%; padding:10px; margin-bottom:10px; background:#333; color:#fff; border:none; border-radius:5px;">
+                <input type="file" id="vidFile" accept="video/*" style="margin-bottom:10px;">
+                <button class="btn-style" onclick="uploadVideo()" id="uploadBtn">পাবলিশ করুন</button>
+            </div>
+        </div>
+
+        <div id="profileSection" class="section">
+            <div style="text-align:center; background:#222; padding:20px; border-radius:10px;">
+                <img id="userPic" src="" style="width:80px; border-radius:50%;">
+                <h3 id="userName"></h3>
+                <button onclick="logOut()" style="background:#444; color:white; border:none; padding:10px 20px; border-radius:20px;">লগআউট</button>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i><span>Home</span></div>
+            <div class="nav-item" onclick="switchTab('upload', this)"><i class="fas fa-plus-circle" style="font-size:35px; color:red"></i><span>Upload</span></div>
+            <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i><span>Profile</span></div>
         </div>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-house"></i><span>HOME</span></div>
-        <div class="nav-item" onclick="switchTab('refer', this)"><i class="fas fa-users"></i><span>REFER</span></div>
-        <div class="nav-item" onclick="switchTab('game', this)"><i class="fas fa-trophy"></i><span>GAMES</span></div>
-        <a href="https://t.me/mistiam5" class="nav-item" target="_blank" style="color:#888;"><i class="fab fa-telegram"></i><span>CHANNEL</span></a>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
-    <script>
-        let balance = localStorage.getItem('b') ? parseInt(localStorage.getItem('b')) : 0;
-        let myID = localStorage.getItem('myID') || Math.floor(100000 + Math.random() * 900000);
-        localStorage.setItem('myID', myID);
-        document.getElementById('uid').innerText = myID;
+        // আপনার ফিক্সড ফায়ারবেস কনফিগ
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWhYvIKGHfDO4NrH0G5N692FljzD_wmZc",
+            authDomain: "misti-am.firebaseapp.com",
+            projectId: "misti-am",
+            storageBucket: "misti-am.firebasestorage.app",
+            messagingSenderId: "335857181187",
+            appId: "1:335857181187:web:ce34124f9daea3a4262436"
+        };
 
-        function updateUI() { document.getElementById('balance').innerText = balance; }
-        
-        function switchTab(tab, btn) {
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // অটো লগইন পপআপ
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('userPic').src = user.photoURL;
+                document.getElementById('headAvatar').src = user.photoURL;
+                document.getElementById('userName').innerText = user.displayName;
+                loadVideos();
+            } else {
+                const provider = new GoogleAuthProvider();
+                signInWithPopup(auth, provider).catch(e => console.log("Login Error"));
+            }
+        });
+
+        window.switchTab = (tab, el) => {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(tab + 'Section').classList.add('active');
-            if(btn) btn.classList.add('active');
-        }
+            el.classList.add('active');
+        };
 
-        // ২০টি অ্যাড বাটন এবং ১২ ঘণ্টার লিমিট
-        const grid = document.getElementById('adGrid');
-        for(let i=1; i<=20; i++) {
-            const b = document.createElement('button');
-            b.className = 'ad-btn';
-            b.innerText = "অ্যাড "+i;
-            let lastView = localStorage.getItem('ad_t_'+i);
-            let now = new Date().getTime();
-
-            if (lastView && (now - lastView < 43200000)) {
-                b.disabled = true; b.innerText = "১২ ঘণ্টা পর";
-            } else {
-                b.onclick = () => {
-                    window.open("https://omg10.com/4/10692961", "_blank");
-                    setTimeout(() => {
-                        balance += 5; localStorage.setItem('b', balance);
-                        localStorage.setItem('ad_t_'+i, new Date().getTime());
-                        updateUI(); location.reload();
-                    }, 5000);
-                };
-            }
-            grid.appendChild(b);
-        }
-
-        // অটো লুডু গেম লজিক (আপনার ভিডিওর মতো)
-        let scores = [0, 0, 0, 0], prize = 0, isMyTurn = true;
-
-        function initLudo(e, p) {
-            if(balance < e) { alert("ব্যালেন্স নেই!"); return; }
-            balance -= e; prize = p; updateUI();
-            document.getElementById('gameMenu').style.display = 'none';
-            document.getElementById('ludoArea').style.display = 'block';
-        }
-
-        async function playerRoll() {
-            if(!isMyTurn) return;
-            isMyTurn = false;
-            let roll = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice').innerText = roll;
-            scores[0] += roll;
-            document.getElementById('p1_s').innerText = scores[0];
-            checkWinner();
+        window.uploadVideo = async () => {
+            const title = document.getElementById('vidTitle').value;
+            const file = document.getElementById('vidFile').files[0];
+            if(!title || !file) return alert("সব তথ্য দিন!");
             
-            if(scores[0] < 50) {
-                document.getElementById('dice').classList.add('disabled');
-                await computerTurns();
-            }
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true; btn.innerText = "আপলোড হচ্ছে...";
+
+            const sRef = ref(storage, 'v/' + Date.now());
+            const task = uploadBytesResumable(sRef, file);
+            
+            task.on('state_changed', null, null, async () => {
+                const url = await getDownloadURL(task.snapshot.ref);
+                await addDoc(collection(db, "videos"), {
+                    title, vidUrl: url, uploaderName: auth.currentUser.displayName,
+                    uploaderPic: auth.currentUser.photoURL, timestamp: Date.now()
+                });
+                alert("সফল!"); location.reload();
+            });
+        };
+
+        function loadVideos() {
+            const q = query(collection(db, "videos"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snap) => {
+                const feed = document.getElementById('feedArea');
+                feed.innerHTML = "";
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    feed.innerHTML += `
+                        <div class="video-card">
+                            <video src="${data.vidUrl}" controls></video>
+                            <div class="video-info">
+                                <img src="${data.uploaderPic}" class="uploader-pic">
+                                <div><h3 class="vid-title">${data.title}</h3><p style="color:#aaa;font-size:12px">${data.uploaderName}</p></div>
+                            </div>
+                        </div>`;
+                });
+            });
         }
 
-        async function computerTurns() {
-            for(let i=1; i<=3; i++) {
-                document.getElementById('status').innerText = "Computer " + (i+1) + " চালছে...";
-                await new Promise(r => setTimeout(r, 1000));
-                let roll = Math.floor(Math.random() * 6) + 1;
-                document.getElementById('dice').innerText = roll;
-                scores[i] += roll;
-                document.getElementById('p' + (i+1) + '_s').innerText = scores[i];
-                checkWinner();
-            }
-            isMyTurn = true;
-            document.getElementById('dice').classList.remove('disabled');
-            document.getElementById('status').innerText = "আপনার চাল দিন";
-            document.getElementById('dice').innerText = "🎲";
-        }
-
-        function checkWinner() {
-            if(scores[0] >= 50) { alert("অভিনন্দন! আপনি জিতেছেন।"); balance += prize; end(); }
-            else if(scores[1] >= 50 || scores[2] >= 50 || scores[3] >= 50) { alert("দুঃখিত! কম্পিউটার জিতে গেছে।"); end(); }
-        }
-
-        function end() { localStorage.setItem('b', balance); location.reload(); }
-
-        function share(p) {
-            const txt = "মিষ্টি AM অ্যাপে আয় করুন! @mistiambot";
-            if(p==='wa') window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`);
-            else window.open(`https://t.me/share/url?url=https://t.me/mistiambot&text=${encodeURIComponent(txt)}`);
-        }
-
-        updateUI();
+        window.logOut = () => signOut(auth).then(() => location.reload());
     </script>
 </body>
-                                                                                    </html>
-                                 
+    </html>
+    
