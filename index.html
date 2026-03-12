@@ -6,66 +6,52 @@
     <title>X WORLD</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
-        body { margin: 0; background-color: #000; color: #fff; font-family: 'Segoe UI', Tahoma, sans-serif; overflow-x: hidden; }
-        
-        /* সিম্পল হেডার: ❄️ লোগো এবং নাম */
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 15px;
-            background: #000;
-            border-bottom: 1px solid #1a1a1a;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+        body { margin: 0; background-color: #000; color: #fff; font-family: sans-serif; }
+        header { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; border-bottom: 1px solid #1a1a1a; }
         .logo-emoji { font-size: 28px; }
         .site-name { font-size: 22px; font-weight: bold; letter-spacing: 2px; }
 
-        /* ভিডিও গ্রিড সিস্টেম (এক স্ক্রিনে অনেকগুলো ছোট থাম্বনেইল) */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* ২ কলাম */
-            gap: 4px;
-            padding: 4px;
-        }
-        .video-box {
-            background: #111;
-            aspect-ratio: 9/16; /* লম্বা থাম্বনেইল */
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            border-radius: 4px;
-        }
+        /* Home Page Grid */
+        #homePage { display: block; }
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; padding: 5px; }
+        .video-box { background: #111; aspect-ratio: 9/16; overflow: hidden; border-radius: 4px; cursor: pointer; }
         .video-box video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-        
-        /* ফুল স্ক্রিন টিকটক প্লেয়ার */
-        #fullPlayer {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 1000;
-        }
+
+        /* Full Screen Player */
+        #fullPlayer { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; }
         #fullVideo { width: 100%; height: 100%; object-fit: contain; }
-        .back-btn {
-            position: absolute; top: 20px; left: 20px;
-            font-size: 35px; color: #fff; cursor: pointer; z-index: 1100;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
+        .back-btn { position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; z-index: 1100; }
+
+        /* Admin Panel */
+        #adminPanel { display: none; padding: 20px; }
+        .admin-box { background: #111; padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        input { width: 100%; padding: 10px; margin: 10px 0; background: #222; border: 1px solid #444; color: #fff; }
+        .upload-btn { background: #❄️; background-color: #007bff; color: white; padding: 10px; width: 100%; border: none; border-radius: 5px; cursor: pointer; }
+        .stat-item { padding: 10px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-    <header>
-        <span class="logo-emoji">❄️</span>
-        <div class="site-name">X WORLD</div>
-    </header>
+    <div id="homePage">
+        <header>
+            <span class="logo-emoji">❄️</span>
+            <div class="site-name">X WORLD</div>
+        </header>
+        <div class="grid-container" id="videoList"></div>
+    </div>
 
-    <div class="grid-container" id="videoList">
-        <p style="text-align:center; grid-column: span 2; padding: 50px; color: #444;">লোড হচ্ছে...</p>
+    <div id="adminPanel">
+        <h2 style="text-align:center;">Admin Dashboard ❄️</h2>
+        <div class="admin-box">
+            <input type="file" id="vidFile" accept="video/*">
+            <input type="text" id="vidTitle" placeholder="Video Title">
+            <button class="upload-btn" onclick="uploadVideo()">Upload Video</button>
+            <p id="upStatus" style="font-size: 12px; color: yellow;"></p>
+        </div>
+        <h3>All Videos & Views (Admin Only)</h3>
+        <div id="adminStats"></div>
     </div>
 
     <div id="fullPlayer">
@@ -74,7 +60,7 @@
     </div>
 
     <script>
-        // আপনার অরিজিনাল Firebase কনফিগ
+        // Apnar Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyBe87sb10Fsi2yHoj-X1OOVi6xMGhgVhjw",
             authDomain: "studio-4738098761-3b90d.firebaseapp.com",
@@ -86,43 +72,77 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const storage = firebase.storage();
 
-        // ডাটাবেস থেকে ভিডিও নিয়ে আসা
-        function fetchVideos() {
+        // Check if Admin
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('admin') === 'true') {
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            loadAdminStats();
+        } else {
+            loadHomeVideos();
+        }
+
+        // --- Home Logic ---
+        function loadHomeVideos() {
             db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
                 const list = document.getElementById('videoList');
                 list.innerHTML = "";
                 snap.forEach(doc => {
-                    const data = doc.data();
-                    list.innerHTML += `
-                        <div class="video-box" onclick="openVideo('${data.url}')">
-                            <video src="${data.url}#t=0.1" preload="metadata"></video>
-                        </div>`;
+                    const d = doc.data();
+                    list.innerHTML += `<div class="video-box" onclick="openVideo('${doc.id}', '${d.url}')">
+                        <video src="${d.url}#t=0.1"></video>
+                    </div>`;
                 });
             });
         }
 
-        // ভিডিও ফুল স্ক্রিনে ওপেন করা
-        function openVideo(url) {
-            const player = document.getElementById('fullPlayer');
-            const video = document.getElementById('fullVideo');
-            video.src = url;
-            player.style.display = 'block';
-            document.body.style.overflow = 'hidden'; // স্ক্রল বন্ধ করা
+        function openVideo(id, url) {
+            document.getElementById('fullVideo').src = url;
+            document.getElementById('fullPlayer').style.display = 'block';
+            // Update View Count
+            db.collection("videos").doc(id).update({ views: firebase.firestore.FieldValue.increment(1) });
         }
 
-        // প্লেয়ার বন্ধ করা
         function closeVideo() {
-            const player = document.getElementById('fullPlayer');
-            const video = document.getElementById('fullVideo');
-            player.style.display = 'none';
-            video.pause();
-            video.src = "";
-            document.body.style.overflow = 'auto'; // স্ক্রল চালু করা
+            document.getElementById('fullPlayer').style.display = 'none';
+            document.getElementById('fullVideo').pause();
         }
 
-        fetchVideos();
+        // --- Admin Logic ---
+        async function uploadVideo() {
+            const file = document.getElementById('vidFile').files[0];
+            const title = document.getElementById('vidTitle').value;
+            const status = document.getElementById('upStatus');
+            if(!file || !title) return alert("Title and File required!");
+
+            status.innerText = "Uploading... Please wait.";
+            const ref = storage.ref('videos/' + Date.now());
+            await ref.put(file);
+            const url = await ref.getDownloadURL();
+
+            await db.collection("videos").add({
+                url, title, views: 0, time: Date.now()
+            });
+            status.innerText = "Upload Success! 🎉";
+            document.getElementById('vidTitle').value = "";
+            loadAdminStats();
+        }
+
+        function loadAdminStats() {
+            db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
+                const stats = document.getElementById('adminStats');
+                stats.innerHTML = "";
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    stats.innerHTML += `<div class="stat-item">
+                        <span>${d.title}</span>
+                        <span style="color:cyan;">👁️ ${d.views || 0} views</span>
+                    </div>`;
+                });
+            });
+        }
     </script>
 </body>
 </html>
-
