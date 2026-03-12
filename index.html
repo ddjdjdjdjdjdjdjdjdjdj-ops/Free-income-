@@ -4,109 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X WORLD</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        body {
-            margin: 0;
-            background-color: #000000;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-        }
-
-        /* টপ হেডার */
+        body { margin: 0; background-color: #000; color: #fff; font-family: sans-serif; overflow-x: hidden; }
+        
+        /* সিম্পল হেডার: শুধু নাম এবং লোগো */
         header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            background-color: #000000;
-            border-bottom: 1px solid #222;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: #000;
+            border-bottom: 1px solid #111;
         }
+        .logo-img { width: 40px; height: 40px; border-radius: 8px; }
+        .site-name { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
 
-        .logo { font-size: 22px; font-weight: bold; letter-spacing: 1px; }
-
-        .header-icons { display: flex; gap: 20px; font-size: 20px; align-items: center; }
-
-        .profile-img {
-            width: 32px; height: 32px; border-radius: 50%;
-            background-color: #444; display: flex;
-            align-items: center; justify-content: center; overflow: hidden;
-        }
-
-        /* ভিডিও গ্রিড (আপনার ডায়াগ্রাম অনুযায়ী) */
-        .video-grid {
+        /* ভিডিও গ্রিড সিস্টেম */
+        .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            padding: 10px;
-            padding-bottom: 20px;
+            gap: 5px;
+            padding: 5px;
         }
-
-        .video-card {
-            background-color: #111;
-            border-radius: 8px;
+        .video-box {
+            background: #111;
+            aspect-ratio: 9/16; /* লম্বালম্বি থাম্বনেইল */
             overflow: hidden;
-            aspect-ratio: 16/9;
             position: relative;
             cursor: pointer;
         }
-
-        .video-card video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .video-title {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: rgba(0,0,0,0.7);
-            font-size: 11px;
-            padding: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* ফুল স্ক্রিন ভিডিও প্লেয়ার (ইউটিউব স্টাইল) */
-        #videoPlayer {
+        .video-box video { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* টিকটক স্টাইল ফুল স্ক্রিন প্লেয়ার */
+        #fullPlayer {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 2000;
+            background: #000; z-index: 1000;
         }
-
-        .close-btn {
+        #fullVideo { width: 100%; height: 100%; object-fit: contain; }
+        .back-btn {
             position: absolute; top: 20px; left: 20px;
-            font-size: 25px; color: #fff; cursor: pointer; z-index: 2100;
+            font-size: 30px; color: #fff; cursor: pointer; z-index: 1100;
         }
-
-        #mainVideo { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">X WORLD</div>
-        <div class="header-icons">
-            <i class="fas fa-search"></i>
-            <div class="profile-img"><i class="fas fa-user"></i></div>
-        </div>
+        <img src="https://i.ibb.co/m5Z6K7Y/image-search-1773302859765.jpg" class="logo-img">
+        <div class="site-name">X WORLD</div>
     </header>
 
-    <div class="video-grid" id="videoFeed">
-        <p style="text-align:center; grid-column: span 2;">ভিডিও লোড হচ্ছে...</p>
+    <div class="grid-container" id="videoList">
+        <p style="text-align:center; grid-column: span 2; padding: 20px;">লোড হচ্ছে...</p>
     </div>
 
-    <div id="videoPlayer">
-        <span class="close-btn" onclick="closeVideo()"><i class="fas fa-arrow-left"></i></span>
-        <video id="mainVideo" controls autoplay></video>
+    <div id="fullPlayer">
+        <div class="back-btn" onclick="closeVideo()">✕</div>
+        <video id="fullVideo" controls autoplay loop></video>
     </div>
 
     <script>
@@ -123,34 +82,37 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // ভিডিও থাম্বনেইলগুলো ডাটাবেস থেকে আনা
-        function loadFeed() {
+        // ডাটাবেস থেকে ভিডিও নিয়ে আসা
+        function fetchVideos() {
             db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
-                const feed = document.getElementById('videoFeed');
-                feed.innerHTML = "";
+                const list = document.getElementById('videoList');
+                list.innerHTML = "";
                 snap.forEach(doc => {
-                    const v = doc.data();
-                    feed.innerHTML += `
-                        <div class="video-card" onclick="playVideo('${v.url}')">
-                            <video src="${v.url}#t=0.5"></video>
-                            <div class="video-title">${v.title}</div>
+                    const data = doc.data();
+                    list.innerHTML += `
+                        <div class="video-box" onclick="openVideo('${data.url}')">
+                            <video src="${data.url}#t=0.1"></video>
                         </div>`;
                 });
             });
         }
 
-        function playVideo(url) {
-            document.getElementById('mainVideo').src = url;
-            document.getElementById('videoPlayer').style.display = 'block';
+        function openVideo(url) {
+            const player = document.getElementById('fullPlayer');
+            const video = document.getElementById('fullVideo');
+            video.src = url;
+            player.style.display = 'block';
         }
 
         function closeVideo() {
-            document.getElementById('videoPlayer').style.display = 'none';
-            document.getElementById('mainVideo').pause();
+            const player = document.getElementById('fullPlayer');
+            const video = document.getElementById('fullVideo');
+            player.style.display = 'none';
+            video.pause();
+            video.src = "";
         }
 
-        loadFeed();
+        fetchVideos();
     </script>
 </body>
 </html>
-
