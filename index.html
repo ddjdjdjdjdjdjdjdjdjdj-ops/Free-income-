@@ -4,94 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X WORLD ❄️</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; padding: 10px; }
-        header { text-align: center; padding: 10px; border-bottom: 2px solid #222; }
-        #adminArea { display: none; background: #1a1a1a; padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px dashed #34a853; }
-        input { width: 93%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #444; background: #222; color: #fff; }
-        button { width: 100%; padding: 12px; background: #34a853; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .video-card { background: #111; border-radius: 10px; overflow: hidden; margin-bottom: 20px; border: 1px solid #333; }
-        iframe { width: 100%; height: 250px; border: none; }
-        .video-title { padding: 10px; text-align: center; font-size: 14px; color: #ccc; }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        header { text-align: center; padding: 15px; background: #111; border-bottom: 2px solid #e11d48; position: sticky; top: 0; z-index: 1000; }
+        h1 { margin: 0; font-size: 24px; color: #e11d48; letter-spacing: 2px; }
+        
+        .container {
+            max-width: 600px;
+            margin: 10px auto;
+            padding: 10px;
+            min-height: 80vh;
+        }
+
+        /* চ্যানেল উইজেট ডিজাইন */
+        .tg-widget {
+            background: #111;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid #222;
+        }
+
+        .join-btn {
+            display: block;
+            width: 80%;
+            max-width: 300px;
+            margin: 20px auto;
+            padding: 12px;
+            background: #24A1DE;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(36, 161, 222, 0.3);
+        }
     </style>
 </head>
 <body>
 
-    <header><h1>❄️ X WORLD ❄️</h1></header>
+    <header>
+        <h1>❄️ X WORLD ❄️</h1>
+    </header>
 
-    <div id="adminArea">
-        <h3 style="margin:0; color: #34a853;">গুগল ড্রাইভ ভিডিও অ্যাড করুন 🛠️</h3>
-        <input type="text" id="driveUrl" placeholder="গুগল ড্রাইভ শেয়ার লিঙ্ক দিন">
-        <input type="text" id="videoTitle" placeholder="ভিডিওর নাম">
-        <button onclick="addDriveVideo()">ভিডিও সেভ করুন 🎉</button>
-        <p id="status" style="text-align:center; font-size:13px; color:yellow;"></p>
+    <div class="container">
+        <div class="tg-widget">
+            <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                    data-telegram-channel="xworld9" 
+                    data-limit="15" 
+                    data-dark="1"></script>
+        </div>
     </div>
 
-    <div id="videoList" style="margin-top:20px;">
-        <p style="text-align:center; color:#666;">ভিডিও লোড হচ্ছে... ❄️</p>
-    </div>
+    <a href="https://t.me/xworld9" class="join-btn">চ্যানেলে জয়েন করুন 🚀</a>
 
-    <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyBWhYvIKGHfDO4NrH0G5N692FljzD_wmZc",
-          authDomain: "misti-am.firebaseapp.com",
-          databaseURL: "https://misti-am-default-rtdb.firebaseio.com",
-          projectId: "misti-am",
-          storageBucket: "misti-am.firebasestorage.app",
-          messagingSenderId: "335857181187",
-          appId: "1:335857181187:web:4dc1f6ca2b79e1e0262436"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('admin') === 'misti786') {
-            document.getElementById('adminArea').style.display = 'block';
-        }
-
-        // ড্রাইভ লিঙ্ক থেকে এমবেড লিঙ্ক তৈরি করার ফাংশন
-        function getDriveEmbedLink(url) {
-            const driveId = url.match(/[-\w]{25,}/);
-            return driveId ? `https://drive.google.com/file/d/${driveId[0]}/preview` : null;
-        }
-
-        async function addDriveVideo() {
-            const url = document.getElementById('driveUrl').value;
-            const title = document.getElementById('videoTitle').value;
-            const status = document.getElementById('status');
-            const embedLink = getDriveEmbedLink(url);
-
-            if(!embedLink) return alert("সঠিক গুগল ড্রাইভ লিঙ্ক দিন!");
-
-            status.innerText = "সেভ হচ্ছে...";
-            try {
-                await db.collection("x_drive_videos").add({
-                    videoUrl: embedLink,
-                    title: title || "Drive Video",
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                status.innerText = "সফলভাবে অ্যাড হয়েছে! ✅";
-                document.getElementById('driveUrl').value = "";
-                document.getElementById('videoTitle').value = "";
-            } catch (e) { status.innerText = "Error: Firestore Rules চেক করুন।"; }
-        }
-
-        db.collection("x_drive_videos").orderBy("createdAt", "desc").onSnapshot((snap) => {
-            const list = document.getElementById('videoList');
-            list.innerHTML = "";
-            snap.forEach((doc) => {
-                const data = doc.data();
-                list.innerHTML += `
-                    <div class="video-card">
-                        <iframe src="${data.videoUrl}" allow="autoplay"></iframe>
-                        <div class="video-title">${data.title}</div>
-                    </div>`;
-            });
-        });
-    </script>
 </body>
 </html>
 
