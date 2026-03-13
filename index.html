@@ -4,46 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X WORLD ❄️</title>
-    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
-    
     <style>
-        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
-        header { text-align: center; padding: 15px; border-bottom: 2px solid #222; margin-bottom: 15px; }
-        
-        /* অ্যাডমিন প্যানেল ডিফল্টভাবে হাইড থাকবে */
-        #adminArea { display: none; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px dashed #e11d48; margin-bottom: 25px; }
-        
-        input[type="file"] { width: 100%; margin: 10px 0; color: #ccc; }
-        button { width: 100%; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
-        .video-container { display: flex; flex-direction: column; gap: 15px; }
-        .video-card { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
-        video { width: 100%; display: block; background: #000; height: auto; max-height: 450px; }
-        .info { padding: 10px; font-size: 12px; text-align: center; color: #666; border-top: 1px solid #222; }
-        #status { color: #fbbf24; text-align: center; margin-top: 10px; font-size: 14px; }
+        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; padding: 10px; }
+        header { text-align: center; padding: 10px; border-bottom: 2px solid #222; }
+        #adminArea { display: none; background: #1a1a1a; padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px dashed #FF0000; }
+        input { width: 93%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #444; background: #222; color: #fff; }
+        button { width: 100%; padding: 12px; background: #FF0000; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .video-card { background: #111; border-radius: 10px; overflow: hidden; margin-bottom: 20px; border: 1px solid #333; }
+        iframe { width: 100%; height: 220px; border: none; }
+        .video-title { padding: 10px; text-align: center; font-size: 14px; color: #ccc; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>❄️ X WORLD ❄️</h1>
-    </header>
+    <header><h1>❄️ X WORLD ❄️</h1></header>
 
     <div id="adminArea">
-        <h3 style="margin:0; color: #e11d48;">অ্যাডমিন কন্ট্রোল 🛠️</h3>
-        <input type="file" id="videoFile" accept="video/*">
-        <button onclick="uploadVideo()">Upload Video 🎉</button>
-        <div id="status"></div>
+        <h3 style="margin:0; color: #FF0000;">ইউটিউব ভিডিও অ্যাড করুন 🛠️</h3>
+        <input type="text" id="videoUrl" placeholder="YouTube Video Link (যেমন: https://youtu.be/...)">
+        <input type="text" id="videoTitle" placeholder="ভিডিওর নাম বা টাইটেল">
+        <button onclick="addYoutubeVideo()">অ্যাড করুন 🎉</button>
+        <p id="status" style="text-align:center; font-size:13px; color:yellow;"></p>
     </div>
 
-    <div class="video-container" id="videoList">
-        <p style="text-align:center; color: #444;">ভিডিও লোড হচ্ছে... ❄️</p>
+    <div id="videoList" style="margin-top:20px;">
+        <p style="text-align:center; color:#666;">ভিডিও লোড হচ্ছে... ❄️</p>
     </div>
 
     <script>
+        // আপনার Misti AM কনফিগ
         const firebaseConfig = {
           apiKey: "AIzaSyBWhYvIKGHfDO4NrH0G5N692FljzD_wmZc",
           authDomain: "misti-am.firebaseapp.com",
@@ -56,55 +47,51 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const storage = firebase.storage();
 
-        // পাসওয়ার্ড বা ইউআরএল প্যারামিটার দিয়ে অ্যাডমিন চেক
+        // অ্যাডমিন চেক
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('admin') === 'misti786') { // আপনার গোপন কোড: misti786
+        if (urlParams.get('admin') === 'misti786') {
             document.getElementById('adminArea').style.display = 'block';
         }
 
-        async function uploadVideo() {
-            const fileInput = document.getElementById('videoFile');
-            const status = document.getElementById('status');
-            const file = fileInput.files[0];
-
-            if(!file) return alert("ভিডিও ফাইল সিলেক্ট করুন!");
-
-            status.innerText = "আপলোড হচ্ছে... ❄️";
-            
-            try {
-                const fileName = Date.now() + "_" + file.name;
-                const storageRef = storage.ref('videos/' + fileName);
-                const snapshot = await storageRef.put(file);
-                const downloadURL = await snapshot.ref.getDownloadURL();
-
-                await db.collection("x_videos").add({
-                    url: downloadURL,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                status.innerText = "আপলোড সফল! ✅";
-                fileInput.value = ""; 
-            } catch (error) {
-                status.innerText = "ভুল হয়েছে! Rules চেক করুন।";
-            }
+        // ইউটিউব লিঙ্ক থেকে ID বের করার ফাংশন
+        function getYoutubeID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        db.collection("x_videos").orderBy("createdAt", "desc").onSnapshot((snap) => {
-            const videoList = document.getElementById('videoList');
-            videoList.innerHTML = "";
-            if (snap.empty) {
-                videoList.innerHTML = "<p style='text-align:center;'>কোনো ভিডিও নেই।</p>";
-            }
+        async function addYoutubeVideo() {
+            const url = document.getElementById('videoUrl').value;
+            const title = document.getElementById('videoTitle').value;
+            const status = document.getElementById('status');
+            const videoId = getYoutubeID(url);
+
+            if(!videoId) return alert("সঠিক ইউটিউব লিঙ্ক দিন!");
+
+            status.innerText = "সেভ হচ্ছে...";
+            try {
+                await db.collection("x_youtube_videos").add({
+                    videoId: videoId,
+                    title: title || "X World Video",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                status.innerText = "ইউটিউব ভিডিও অ্যাড হয়েছে! ✅";
+                document.getElementById('videoUrl').value = "";
+                document.getElementById('videoTitle').value = "";
+            } catch (e) { status.innerText = "Error: Firestore Rules চেক করুন।"; }
+        }
+
+        // ভিডিও দেখানো
+        db.collection("x_youtube_videos").orderBy("createdAt", "desc").onSnapshot((snap) => {
+            const list = document.getElementById('videoList');
+            list.innerHTML = "";
             snap.forEach((doc) => {
                 const data = doc.data();
-                videoList.innerHTML += `
+                list.innerHTML += `
                     <div class="video-card">
-                        <video controls preload="metadata" poster="https://via.placeholder.com/400x200/000/fff?text=X+WORLD">
-                            <source src="${data.url}" type="video/mp4">
-                        </video>
-                        <div class="info">X WORLD Player ❄️</div>
+                        <iframe src="https://www.youtube.com/embed/${data.videoId}" allowfullscreen></iframe>
+                        <div class="video-title">${data.title}</div>
                     </div>`;
             });
         });
