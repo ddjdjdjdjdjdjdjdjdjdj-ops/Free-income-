@@ -3,173 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X WORLD</title>
+    <title>X WORLD ❄️</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
     <style>
-        body { margin: 0; background-color: #000; color: #fff; font-family: sans-serif; }
-        header { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; border-bottom: 1px solid #1a1a1a; }
-        .logo-emoji { font-size: 28px; }
-        .site-name { font-size: 22px; font-weight: bold; letter-spacing: 2px; }
-
-        /* Home Page Grid - আপনার স্ক্রিনশটের মতো ইউটিউব স্টাইল থাম্বনেইল */
-        #homePage { display: block; }
-        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; padding: 5px; }
-        .video-box { background: #111; aspect-ratio: 9/16; overflow: hidden; border-radius: 4px; cursor: pointer; position: relative; }
-        .video-box video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-        
-        /* Full Screen Player - টিকটক স্টাইল */
-        #fullPlayer { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; }
-        #fullVideo { width: 100%; height: 100%; object-fit: contain; }
-        .back-btn { position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; z-index: 1100; color: #fff; }
-
-        /* Admin Panel - এটি শুধু আপনি দেখতে পাবেন */
-        #adminPanel { display: none; padding: 20px; }
-        .admin-box { background: #111; padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
-        input { width: 90%; padding: 10px; margin: 10px 0; background: #222; border: 1px solid #444; color: #fff; border-radius: 5px; }
-        .upload-btn { background: #007bff; color: white; padding: 12px; width: 100%; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .stat-item { padding: 10px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .view-count { color: #00f2ea; font-weight: bold; }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
+        header { text-align: center; padding: 15px; border-bottom: 2px solid #222; margin-bottom: 15px; }
+        .admin-box { background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px dashed #444; margin-bottom: 25px; }
+        input[type="file"] { width: 100%; margin: 10px 0; color: #ccc; }
+        button { width: 100%; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .video-container { display: flex; flex-direction: column; gap: 15px; }
+        .video-card { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
+        video { width: 100%; display: block; background: #000; height: 220px; object-fit: contain; }
+        .info { padding: 10px; font-size: 12px; text-align: center; color: #666; }
+        #status { color: #22c55e; text-align: center; margin-top: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div id="homePage">
-        <header>
-            <span class="logo-emoji">❄️</span>
-            <div class="site-name">X WORLD</div>
-        </header>
-        <div class="grid-container" id="videoList">
-            </div>
+    <header>
+        <h1>❄️ X WORLD ❄️</h1>
+    </header>
+
+    <div class="admin-box">
+        <h3 style="margin:0;">অ্যাডমিন আপলোড</h3>
+        <input type="file" id="videoFile" accept="video/*">
+        <button onclick="uploadVideo()">Upload to Misti AM 🎉</button>
+        <div id="status"></div>
     </div>
 
-    <div id="adminPanel">
-        <header>
-            <span class="logo-emoji">⚙️</span>
-            <div class="site-name">ADMIN PANEL</div>
-        </header>
-        <div class="admin-box">
-            <h3>নতুন ভিডিও আপলোড করুন</h3>
-            <input type="file" id="vidFile" accept="video/*">
-            <input type="text" id="vidTitle" placeholder="ভিডিওর নাম (Title)">
-            <button class="upload-btn" onclick="uploadVideo()">UPLOAD NOW</button>
-            <p id="upStatus" style="font-size: 14px; color: #00f2ea; text-align: center; margin-top: 10px;"></p>
+    <div class="video-container" id="videoList">
         </div>
-        
-        <div class="admin-box">
-            <h3>ভিডিও স্ট্যাটাস (Views)</h3>
-            <div id="adminStats"></div>
-        </div>
-        <button onclick="window.location.href='index.html'" style="background:none; color:#555; border:none; width:100%; cursor:pointer;">🏠 হোম পেজে ফিরুন</button>
-    </div>
-
-    <div id="fullPlayer">
-        <div class="back-btn" onclick="closeVideo()">✕</div>
-        <video id="fullVideo" controls autoplay loop></video>
-    </div>
 
     <script>
-        // আপনার অরিজিনাল Firebase কনফিগ
+        // আপনার নতুন Misti AM কনফিগ
         const firebaseConfig = {
-            apiKey: "AIzaSyBe87sb10Fsi2yHoj-X1OOVi6xMGhgVhjw",
-            authDomain: "studio-4738098761-3b90d.firebaseapp.com",
-            projectId: "studio-4738098761-3b90d",
-            storageBucket: "studio-4738098761-3b90d.firebasestorage.app",
-            messagingSenderId: "951804332123",
-            appId: "1:951804332123:web:1c40865e7c071a64b0177e"
+          apiKey: "AIzaSyBWhYvIKGHfDO4NrH0G5N692FljzD_wmZc",
+          authDomain: "misti-am.firebaseapp.com",
+          databaseURL: "https://misti-am-default-rtdb.firebaseio.com",
+          projectId: "misti-am",
+          storageBucket: "misti-am.firebasestorage.app",
+          messagingSenderId: "335857181187",
+          appId: "1:335857181187:web:4dc1f6ca2b79e1e0262436",
+          measurementId: "G-SLGB57RYLN"
         };
 
+        // ইনিশিয়ালাইজ
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        // URL চেক করে অ্যাডমিন প্যানেল দেখানো
-        const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get('login') === 'admin789') {
-            document.getElementById('homePage').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            loadAdminStats();
-        } else {
-            loadHomeVideos();
-        }
-
-        // --- হোমে ভিডিও লোড করা ---
-        function loadHomeVideos() {
-            db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
-                const list = document.getElementById('videoList');
-                list.innerHTML = "";
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    list.innerHTML += `
-                        <div class="video-box" onclick="openVideo('${doc.id}', '${d.url}')">
-                            <video src="${d.url}#t=0.5" preload="metadata"></video>
-                        </div>`;
-                });
-            });
-        }
-
-        function openVideo(id, url) {
-            document.getElementById('fullVideo').src = url;
-            document.getElementById('fullPlayer').style.display = 'block';
-            // ভিউ আপডেট করা (গোপনে)
-            db.collection("videos").doc(id).update({ 
-                views: firebase.firestore.FieldValue.increment(1) 
-            });
-        }
-
-        function closeVideo() {
-            document.getElementById('fullPlayer').style.display = 'none';
-            const video = document.getElementById('fullVideo');
-            video.pause();
-            video.src = "";
-        }
-
-        // --- অ্যাডমিন প্যানেল লজিক ---
+        // আপলোড ফাংশন
         async function uploadVideo() {
-            const file = document.getElementById('vidFile').files[0];
-            const title = document.getElementById('vidTitle').value;
-            const status = document.getElementById('upStatus');
-            
-            if(!file || !title) return alert("দয়া করে ফাইল এবং নাম দিন!");
+            const fileInput = document.getElementById('videoFile');
+            const status = document.getElementById('status');
+            const file = fileInput.files[0];
 
-            status.innerText = "ভিডিও আপলোড হচ্ছে... দয়া করে অপেক্ষা করুন।";
+            if(!file) return alert("ভিডিও ফাইল বেছে নিন!");
+
+            status.innerText = "Misti AM-এ আপলোড হচ্ছে... ❄️";
+            status.style.color = "#fbbf24";
             
             try {
-                const ref = storage.ref('videos/' + Date.now() + "_" + file.name);
-                await ref.put(file);
-                const url = await ref.getDownloadURL();
+                const fileName = Date.now() + "_" + file.name;
+                const storageRef = storage.ref('videos/' + fileName);
+                const snapshot = await storageRef.put(file);
+                const downloadURL = await snapshot.ref.getDownloadURL();
 
-                await db.collection("videos").add({
-                    url: url,
-                    title: title,
-                    views: 0,
-                    time: Date.now()
+                await db.collection("x_videos").add({
+                    url: downloadURL,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                
-                status.innerText = "সফলভাবে আপলোড হয়েছে! 🎉";
-                document.getElementById('vidTitle').value = "";
-                document.getElementById('vidFile').value = "";
+
+                status.innerText = "সফলভাবে আপলোড হয়েছে! ✅";
+                status.style.color = "#22c55e";
+                fileInput.value = ""; 
             } catch (error) {
-                status.innerText = "এরর: " + error.message;
+                console.error(error);
+                status.innerText = "ভুল হয়েছে! Rules চেক করুন।";
+                status.style.color = "#ef4444";
             }
         }
 
-        function loadAdminStats() {
-            db.collection("videos").orderBy("time", "desc").onSnapshot(snap => {
-                const stats = document.getElementById('adminStats');
-                stats.innerHTML = "";
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    stats.innerHTML += `
-                        <div class="stat-item">
-                            <span>${d.title}</span>
-                            <span class="view-count">👁️ ${d.views || 0} views</span>
-                        </div>`;
-                });
+        // রিয়েল টাইম ডাটা শো
+        db.collection("x_videos").orderBy("createdAt", "desc").onSnapshot((snap) => {
+            const videoList = document.getElementById('videoList');
+            videoList.innerHTML = "";
+            snap.forEach((doc) => {
+                const data = doc.data();
+                videoList.innerHTML += `
+                    <div class="video-card">
+                        <video controls controlsList="nodownload">
+                            <source src="${data.url}" type="video/mp4">
+                        </video>
+                        <div class="info">X WORLD Player ❄️</div>
+                    </div>`;
             });
-        }
+        });
     </script>
 </body>
-    </html>
+</html>
 
