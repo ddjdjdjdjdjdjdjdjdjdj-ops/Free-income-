@@ -12,14 +12,18 @@
     <style>
         body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         header { text-align: center; padding: 15px; border-bottom: 2px solid #222; margin-bottom: 15px; }
-        .admin-box { background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px dashed #444; margin-bottom: 25px; }
+        
+        /* অ্যাডমিন প্যানেল ডিফল্টভাবে হাইড থাকবে */
+        #adminArea { display: none; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px dashed #e11d48; margin-bottom: 25px; }
+        
         input[type="file"] { width: 100%; margin: 10px 0; color: #ccc; }
         button { width: 100%; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
         .video-container { display: flex; flex-direction: column; gap: 15px; }
         .video-card { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
-        video { width: 100%; display: block; background: #000; height: 220px; object-fit: contain; }
-        .info { padding: 10px; font-size: 12px; text-align: center; color: #666; }
-        #status { color: #22c55e; text-align: center; margin-top: 10px; font-size: 14px; }
+        video { width: 100%; display: block; background: #000; height: auto; max-height: 450px; }
+        .info { padding: 10px; font-size: 12px; text-align: center; color: #666; border-top: 1px solid #222; }
+        #status { color: #fbbf24; text-align: center; margin-top: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -28,18 +32,18 @@
         <h1>❄️ X WORLD ❄️</h1>
     </header>
 
-    <div class="admin-box">
-        <h3 style="margin:0;">অ্যাডমিন আপলোড</h3>
+    <div id="adminArea">
+        <h3 style="margin:0; color: #e11d48;">অ্যাডমিন কন্ট্রোল 🛠️</h3>
         <input type="file" id="videoFile" accept="video/*">
-        <button onclick="uploadVideo()">Upload to Misti AM 🎉</button>
+        <button onclick="uploadVideo()">Upload Video 🎉</button>
         <div id="status"></div>
     </div>
 
     <div class="video-container" id="videoList">
-        </div>
+        <p style="text-align:center; color: #444;">ভিডিও লোড হচ্ছে... ❄️</p>
+    </div>
 
     <script>
-        // আপনার নতুন Misti AM কনফিগ
         const firebaseConfig = {
           apiKey: "AIzaSyBWhYvIKGHfDO4NrH0G5N692FljzD_wmZc",
           authDomain: "misti-am.firebaseapp.com",
@@ -47,25 +51,27 @@
           projectId: "misti-am",
           storageBucket: "misti-am.firebasestorage.app",
           messagingSenderId: "335857181187",
-          appId: "1:335857181187:web:4dc1f6ca2b79e1e0262436",
-          measurementId: "G-SLGB57RYLN"
+          appId: "1:335857181187:web:4dc1f6ca2b79e1e0262436"
         };
 
-        // ইনিশিয়ালাইজ
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        // আপলোড ফাংশন
+        // পাসওয়ার্ড বা ইউআরএল প্যারামিটার দিয়ে অ্যাডমিন চেক
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('admin') === 'misti786') { // আপনার গোপন কোড: misti786
+            document.getElementById('adminArea').style.display = 'block';
+        }
+
         async function uploadVideo() {
             const fileInput = document.getElementById('videoFile');
             const status = document.getElementById('status');
             const file = fileInput.files[0];
 
-            if(!file) return alert("ভিডিও ফাইল বেছে নিন!");
+            if(!file) return alert("ভিডিও ফাইল সিলেক্ট করুন!");
 
-            status.innerText = "Misti AM-এ আপলোড হচ্ছে... ❄️";
-            status.style.color = "#fbbf24";
+            status.innerText = "আপলোড হচ্ছে... ❄️";
             
             try {
                 const fileName = Date.now() + "_" + file.name;
@@ -78,25 +84,24 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                status.innerText = "সফলভাবে আপলোড হয়েছে! ✅";
-                status.style.color = "#22c55e";
+                status.innerText = "আপলোড সফল! ✅";
                 fileInput.value = ""; 
             } catch (error) {
-                console.error(error);
                 status.innerText = "ভুল হয়েছে! Rules চেক করুন।";
-                status.style.color = "#ef4444";
             }
         }
 
-        // রিয়েল টাইম ডাটা শো
         db.collection("x_videos").orderBy("createdAt", "desc").onSnapshot((snap) => {
             const videoList = document.getElementById('videoList');
             videoList.innerHTML = "";
+            if (snap.empty) {
+                videoList.innerHTML = "<p style='text-align:center;'>কোনো ভিডিও নেই।</p>";
+            }
             snap.forEach((doc) => {
                 const data = doc.data();
                 videoList.innerHTML += `
                     <div class="video-card">
-                        <video controls controlsList="nodownload">
+                        <video controls preload="metadata" poster="https://via.placeholder.com/400x200/000/fff?text=X+WORLD">
                             <source src="${data.url}" type="video/mp4">
                         </video>
                         <div class="info">X WORLD Player ❄️</div>
