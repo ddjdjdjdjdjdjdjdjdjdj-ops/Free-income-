@@ -5,29 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X WORLD ❄️</title>
     <style>
-        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
-        header { text-align: center; padding: 15px; background: #111; border-bottom: 2px solid #e11d48; position: sticky; top: 0; z-index: 1000; }
+        body { 
+            background: #000; 
+            color: #fff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+        }
+        header { 
+            text-align: center; 
+            padding: 15px; 
+            background: #111; 
+            border-bottom: 2px solid #e11d48; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+        }
         h1 { margin: 0; font-size: 24px; color: #e11d48; letter-spacing: 2px; }
         
-        .container {
+        .main-container {
             max-width: 600px;
             margin: 10px auto;
             padding: 10px;
-            min-height: 80vh;
+            min-height: 85vh;
         }
 
-        /* চ্যানেল উইজেট ডিজাইন */
-        .tg-widget {
+        /* টেলিগ্রাম উইজেট স্টাইল */
+        .telegram-feed {
             background: #111;
             border-radius: 15px;
             overflow: hidden;
             border: 1px solid #222;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
         }
 
         .join-btn {
             display: block;
-            width: 80%;
-            max-width: 300px;
+            width: 70%;
+            max-width: 250px;
             margin: 20px auto;
             padding: 12px;
             background: #24A1DE;
@@ -36,8 +51,10 @@
             text-decoration: none;
             border-radius: 50px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(36, 161, 222, 0.3);
+            font-size: 16px;
+            transition: 0.3s;
         }
+        .join-btn:hover { background: #1c82b6; transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -46,17 +63,16 @@
         <h1>❄️ X WORLD ❄️</h1>
     </header>
 
-    <div class="container">
-        <div class="tg-widget">
+    <div class="main-container">
+        <div class="telegram-feed">
             <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                    data-telegram-channel="xworld9" 
-                    data-limit="15" 
+                    data-telegram-channel="xwolrd90" 
+                    data-limit="20" 
                     data-dark="1"></script>
         </div>
     </div>
 
-    <a href="https://t.me/xworld9" class="join-btn">চ্যানেলে জয়েন করুন 🚀</a>
+    <a href="https://t.me/xwolrd90" class="join-btn">চ্যানেলে জয়েন করুন 🚀</a>
 
 </body>
 </html>
-
